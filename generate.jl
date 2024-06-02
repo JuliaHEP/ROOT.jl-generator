@@ -134,6 +134,9 @@ project["extras"]["UnROOT"] = "3cd96dde-e98d-4713-81e9-a4a1b0235ce9"
 project["targets"] = Dict{String, Any}()
 project["targets"]["test"] = ["Test", "UnROOT"]
 
+project["compat"] = Dict{String, Any}()
+project["compat"]["julia"] = "1.6"
+
 open(toml_path, "w") do f
     TOML.print(f, project)
 end
