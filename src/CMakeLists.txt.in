@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-project(ROOT2)
-
+project(ROOT)
 
 # If no explicit ROOTSYS is set, use ${ROOTSYS} environment variable to search
 # for ROOT. This may be set by sourcing thisroot.sh from an installation.

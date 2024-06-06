@@ -127,15 +127,17 @@ project["deps"]["Scratch"] = "6c6a2e73-6563-6170-7368-637461726353"
 project["deps"]["TOML"] = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 project["deps"]["UUIDs"] = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 
-project["extras"] = Dict{String, Any}()
+haskey(project, "extras") || (project["extras"] = Dict{String, Any}())
 project["extras"]["Test"] = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 project["extras"]["UnROOT"] = "3cd96dde-e98d-4713-81e9-a4a1b0235ce9"
 
-project["targets"] = Dict{String, Any}()
+haskey(project, "targets") || (project["targets"] = Dict{String, Any}())
 project["targets"]["test"] = ["Test", "UnROOT"]
 
-project["compat"] = Dict{String, Any}()
+haskey(project, "compat") || (project["compat"] = Dict{String, Any}())
 project["compat"]["julia"] = "1.6"
+project["compat"]["Scratch"] = "1.2"
+project["compat"]["Conda"] = "1.10"
 
 open(toml_path, "w") do f
     TOML.print(f, project)
