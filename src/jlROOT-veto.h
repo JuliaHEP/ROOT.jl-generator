@@ -41,3 +41,6 @@ TBranch * TTree::Branch(const char *, Longptr_t, const char *, Int_t);
 //const char * TObjArrayIter::DeclFileName();
 ///.*TObject::.*/;
 
+/.*ROOT::Internal::.*/
+
+std::atomic
