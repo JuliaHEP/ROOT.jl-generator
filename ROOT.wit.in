@@ -9,7 +9,7 @@ out_cxx_dir         = "ROOT/deps/src"
 
 include_dirs        = [ "%ROOT_INC_DIR%", "src" ]
 
-input               = [ "TROOT.h", "TBrowser.h", "TTree.h", "TBranchPtr.h", "TLeaf.h", "TBranch.h", "TSystem.h", "TCanvas.h", "TH1.h", "TRandom.h", "TAxis.h", "TApplication.h",  "TDirectory.h", "TDirectoryFile.h", "TFile.h", "TNamed.h", "TObject.h", "TGraph.h", "TF1.h", "TTreeReader.h", "TTreeReaderValue.h", "TTreeReaderArray.h", "Templates.h", "TEntryList.h", "TKey.h",  "TVectorT.h", "TVectorDfwd.h", "TVectorFfwd.h", "Extra.h"  ]
+input               = [ "TROOT.h", "TBrowser.h", "TTree.h", "TBranchPtr.h", "TLeaf.h", "TBranch.h", "TSystem.h", "TCanvas.h", "TH1.h", "TH2.h", "TProfile", "TProfile2D","TRandom.h", "TAxis.h", "TApplication.h",  "TDirectory.h", "TDirectoryFile.h", "TFile.h", "TNamed.h", "TObject.h", "TGraph.h", "TF1.h", "TTreeReader.h", "TTreeReaderValue.h", "TTreeReaderArray.h", "Templates.h", "TEntryList.h", "TKey.h",  "TVectorT.h", "TVectorDfwd.h", "TVectorFfwd.h", "Extra.h"  ]
 #input               = [  "TTreeReader.h", "TTreeReaderValue.h", "TTreeReaderArray.h" ]
 extra_headers       = [ "TVectorT.h" ]
 
@@ -17,7 +17,7 @@ veto_list           = "src/jlROOT-veto.h"
 
 fields_and_variables = true
 
-# Currently not working with CxxWrap 0.15.0, use 0.14.x
+# Currently not working with CxxWrap 0.15+, use 0.14.x
 cxxwrap_version = "0.14"
 
 #auto_veto           = false

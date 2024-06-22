@@ -10,7 +10,7 @@ cxxsrc = [ "Templates.cxx", "Templates.h", "TBranchPtr.h", "Extra.cxx", "Extra.h
 #makefile = "CMakeLists.txt.in"
 makefile = "Makefile.in"
 buildfile = "build.jl.in"
-jlsrc = ["iROOT.jl", "ROOT.jl", "ROOTex.jl", "demo.jl" ]
+jlsrc = ["iROOT.jl", "ROOT.jl", "ROOTex.jl", "demo.jl", "def_args.jl" ]
 
 # It is important to start from an empty src directory. Require to move all previously generated file
 if isdir(joinpath(builddir, "ROOT"))
