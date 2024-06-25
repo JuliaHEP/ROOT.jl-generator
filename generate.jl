@@ -83,7 +83,7 @@ err && exit(1)
 #    rm(joinpath(builddir, "wrapit.cmake"))
 #end
 
-rm(joinpath(builddir, "ROOT", "src", "ROOT-generated.jl"))
+rm(joinpath(builddir, "ROOT", "src", "ROOT-generated.jl"), force=true)
 
 for f in cxxsrc
     cp(joinpath("src", f), joinpath(builddir, "ROOT", "deps", "src", f), force=true)
