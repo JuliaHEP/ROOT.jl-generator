@@ -44,3 +44,6 @@ TBranch * TTree::Branch(const char *, Longptr_t, const char *, Int_t);
 /.*ROOT::Internal::.*/
 
 std::atomic
+
+//Generates a build error
+TMatrixTBase
