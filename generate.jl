@@ -36,6 +36,8 @@ if !isnothing(rc) && rc != 0
     exit(rc)
 end
 
+run(`$(@__DIR__)/postfix.sh $builddir/ROOT/deps/src`)
+
 function edit_file(file, map)
     tmpfile = joinpath(dirname(file),  "#" * basename(file) * "#")
     try
