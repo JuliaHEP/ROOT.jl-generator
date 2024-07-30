@@ -10,7 +10,33 @@ cxxsrc = [ "Templates.cxx", "Templates.h", "TBranchPtr.h", "Extra.cxx", "Extra.h
 #makefile = "CMakeLists.txt.in"
 makefile = "Makefile.in"
 buildfile = "build.jl.in"
-jlsrc = ["iROOT.jl", "ROOT.jl", "ROOTex.jl", "demo.jl", "def_args.jl" ]
+jlsrc = ["iROOT.jl", "ROOT.jl", "ROOTex.jl", "demo.jl", "def_args.jl", "move.jl" ]
+
+updatemode = ("--update" ∈ ARGS)
+updatemode && println("Update mode")
+noclean = ("--noclean" ∈ ARGS)
+
+function samecontents(fpath1, fpath2)
+    f1 = open(fpath1)
+    f2 = try
+        open(fpath2)
+    catch
+        return false
+    end
+    same = true
+    while(same && !eof(f1) && !eof(f2))
+        same &= (read(f1, Char) != read(f2, Char))
+    end
+    same &= eof(f1) ⊻ eof(f2) #different sizes
+    same
+end
+
+function cp_if_differs(fpath1, fpath2; kwargs...)
+    samecontents(fpath1, fpath2) && return false
+    cp(fpath1, fpath2; kwargs...)
+end
+
+const cpfunc = updatemode ? cp_if_differs : cp
 
 updatemode = ("--update" ∈ ARGS)
 updatemode && println("Update mode")
@@ -58,7 +84,7 @@ open(wit, "w") do f
 end
 
 rc = wrapit(wit, force=true, cmake=true, output_prefix=builddir, 
-            update=updatemode, verbosity=10)
+            update=updatemode, verbosity=0)
 
 if !isnothing(rc) && rc != 0
     println(stderr, "Failed to produce wrapper code with the wrapit function. Exited with code ", rc, ".")
