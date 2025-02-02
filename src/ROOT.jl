@@ -1,83 +1,114 @@
 module ROOT
-
 import Base.getindex
 import Base.setindex!
 
-import Libdl
-import Pkg
 using CxxWrap
+import ROOTprefs
 
-Sys.iswindows() && error("Windows platform detected. ROOT is supported on Linux and MacOS only.")
+include("root_versions.jl")
 
-if !isfile("$(@__DIR__)/../deps/deps.jl")
-    error("File '$(@__DIR__)/../deps/deps.jl' missing. This can happen if the ROOT package was installed with the Pkg.develop() (or ] dev) command. Run 'import Pkg; Pkg.build(\"ROOT\", verbose=true)' (or ] build -v ROOT) to generate the missing file.")
+"""
+    `get_supported_root_versions() -> Vector<Version>`
+
+Return the list of supported C++ ROOT framework versions.
+
+"""
+get_supported_root_versions() = supported_root_versions;
+
+#precompile_error::String = ""
+
+# utility code not exposed to the user
+include("internals.jl")
+
+"""
+   `root_jll_preferred`
+
+Value of `use_root_jll` preference when this module was precompiled.
+
+"""
+const root_jll_preferred = ROOTprefs.is_root_jll_used()
+
+"""
+   `rootsys`
+
+Value of ROOTSYS preference when this module was precompiled.
+"""
+const rootsys = ROOTprefs.get_ROOTSYS()
+
+"""
+  `libroot_julia_path`
+
+Path of the shared library containing the C++ code interfacing the Julia ROOT package with the C++ ROOT libraries. This library is provided by the package libroot_julia_jll included in the dependency, when the C++ ROOT libraries are installed by the Julia package manager from the ROOT_jll package, or built on the fly (at first ROOT module import), if they are installed by another mean. 
+"""
+const libroot_julia_path = Internals.CxxBuild.get_or_build_libroot_julia()
+
+"""
+  `libroot_julia_from_jll`
+
+Flag telling if the package was precompiled with the C++ wrapper library from the jll package (true) or built for an external C++ ROOT installation (false).
+"""
+const libroot_julia_from_jll = root_jll_preferred && Internals.CxxBuild.is_jll_supported()
+
+#const ROOTSYS = Preferences.load_preference(Base.UUID(#=ROOTpref uuid:=# "492d890c-d9c4-11ef-b95f-3722e36032c2"), "ROOTSYS", "")
+
+# Display libroot_julia_path value on precompilation
+@info "ROOT wrapper library: $libroot_julia_path"
+
+export cxxcompile
+
+"""
+  `cxxcompile() -> Bool`
+
+Check that the C+ code of the package is compiled and compile it if needed. Returns true if the code is compiled, false if it wasn't and the compilation failed. Experimental, function name/API may still change.
+"""
+cxxcompile() = !isempty(Internals.CxxBuild.get_or_build_libroot_julia())
+
+if(isempty(libroot_julia_path))
+    ok() = false
+else
+    ok() = true
+
+    include_dependency(libroot_julia_path)
+
+    libroot_julia_from_jll && Internals.loadlibdeps()
+    @wrapmodule(()->libroot_julia_path)
+    
+    include("iROOT.jl")
+    
+    TF1!kDefault = 0
+    
+    export gROOT, gSystem
+    include("ROOT-export.jl")
+    
+    #export global function(s) taking a class instance as first parameter
+    #and missing from generated file ROOT-export.jl
+    export SetAddress
+    export move!
+    
+    include("def_args.jl")
+    include("move.jl")
+    
+    include("ROOTex.jl")
+    include("demo.jl")
 end
-
-include("$(@__DIR__)/../deps/deps.jl")
-include_dependency(libpath)
-
-if !isfile(libpath)
-    error("File '$libpath' missing. This can happen if the ROOT package was installed with the Pkg.develop() (or ] dev) command. Run 'import Pkg; Pkg.build(\"ROOT\", verbose=true)' (or ] build -v ROOT) to generate the missing file.")
-end
-
-@wrapmodule(()->libpath)
-
-include("iROOT.jl")
-
-TF1!kDefault = 0
-
-module Internals
-import Conda
-function get_conda_build_sysroot()
-    cxx = joinpath(Conda.PREFIX, "bin", "c++")
-    cmd = `$cxx -DNDEBUG -xc++ -E -v /dev/null`
-    sysroot=""
-    err = Pipe()
-    run(pipeline(ignorestatus(cmd), stdout=devnull, stderr=err), wait=true)
-    close(err.in)
-    for l in eachline(err)
-        if occursin(r"sysroot/usr/include$", l)
-            sysroot = strip(l)
-            break
-        end
-    end
-    replace(normpath(sysroot), normpath("/usr/include") => "")
-end
-end
-
-import .Internals
 
 function __init__()
-    # Some required environment cleanup before loading the ROOT libraries
-    withenv(
-        #   Prevent mix-up of root library version is another version than ours is in LD_LIBRARY_PATH:
-        "LD_LIBRARY_PATH" => "",
-        "DYLD_LIBRARY_PATH" => "",
-        #   Workaroud to prevent a crash with root installed with Conda linker to
-        #   the c++ compiler called by cling to get the include directories and
-        #   missing in the PATH list. In the Conda install, compiler is same directory as ROOT
-        #   binaries, rootbindir
-        "PATH" => ENV["PATH"] * ":" * rootbindir,
-        #   Fix "assert.h not found" issue:
-        "CONDA_BUILD_SYSROOT" => Internals.get_conda_build_sysroot()) do
-            @initcxx
-            global gROOT = ROOT!GetROOT()
-        end
-    isinteractive() && _init_event_loop()
+    if isempty(libroot_julia_path)
+        @error "Failed to load or build C++ librairies and no function imported. See above error message to fix the issue.\nBEWARE: Julia needs to be restarted for the fix to take effect."
+    else
+        libroot_julia_from_jll && Internals.loadlibdeps()
+        @initcxx
+        global gROOT = ROOT!GetROOT()
+        isinteractive() && _init_event_loop()
+    end
 end
 
-export gROOT, gSystem
-include("ROOT-export.jl")
+@doc """
+    `ok()`
 
-#export global function(s) taking a class instance as first parameter
-#and missing from generated file ROOT-export.jl
-export SetAddress
-export move!
+Check that binding library is available and the package is functionnal.
 
-include("def_args.jl")
-include("move.jl")
-
-include("ROOTex.jl")
-include("demo.jl")
+When using C++ ROOT libraries installed externally to the Julia packager, a binding library is compiled during the ROOT package precompilation. If the library compilation fails, an error message is displayed, but the user will still be able to import the ROOT module. Use this ok() function to check after an import e.g., in a script, that the ROOT module is usable.
+""" ok 
 
 end #module

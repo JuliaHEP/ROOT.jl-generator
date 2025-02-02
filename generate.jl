@@ -6,15 +6,24 @@ root_version = readchomp(`root-config --version`)
 builddir="build/ROOT-" * root_version
 witin = "ROOT.wit.in"
 wit = joinpath(builddir, "ROOT.wit") 
-cxxsrc = [ "Templates.cxx", "Templates.h", "TBranchPtr.h", "Extra.cxx", "Extra.h"]
+cxxsrc = [ "Templates.cxx", "Templates.h", "TBranchPtr.h", "Extra.cxx", "Extra.h" ]
 #makefile = "CMakeLists.txt.in"
 makefile = "Makefile.in"
-buildfile = "build.jl.in"
-jlsrc = ["iROOT.jl", "ROOT.jl", "ROOTex.jl", "demo.jl", "def_args.jl", "move.jl" ]
+jlsrc = ["iROOT.jl", "ROOT.jl", "internals.jl", "CxxBuild.jl", "ROOTex.jl", "demo.jl", "def_args.jl", "move.jl" ]
 
 updatemode = ("--update" ∈ ARGS)
 updatemode && println("Update mode")
 noclean = ("--noclean" ∈ ARGS)
+
+default_verbosity = 0
+i = findfirst(==("--verbosity"), ARGS)
+verbosity = if !isnothing(i)
+    iarg = i + 1
+    iarg <= length(ARGS) || error("option '--verbosity N' taks an argument")
+    parse(Int, ARGS[iarg])
+else
+    default_verbosity
+end
 
 function samecontents(fpath1, fpath2)
     f1 = open(fpath1)
@@ -74,7 +83,6 @@ mkpath(joinpath(builddir, "ROOT", "src"))
 mkpath(joinpath(builddir, "ROOT", "deps"))
 
 rootincdir = readchomp(`root-config --incdir`)
-root_version = readchomp(`root-config --version`)
 
 open(wit, "w") do f
     for l in eachline(witin)
@@ -84,7 +92,7 @@ open(wit, "w") do f
 end
 
 rc = wrapit(wit, force=true, cmake=true, output_prefix=builddir, 
-            update=updatemode, verbosity=0)
+            update=updatemode, verbosity=verbosity)
 
 if !isnothing(rc) && rc != 0
     println(stderr, "Failed to produce wrapper code with the wrapit function. Exited with code ", rc, ".")
@@ -161,16 +169,17 @@ for f in cxxsrc
     cpfunc(joinpath("src", f), joinpath(builddir, "ROOT", "deps", "src", f), force=true)
 end
 
-#cp(joinpath("src", buildfile), joinpath(builddir, "ROOT", "deps", replace(buildfile, r"\.in$" => "")), force=true)
-open(joinpath("src", buildfile)) do fin
-    open(joinpath(builddir, "ROOT", "deps", replace(buildfile, r"\.in$" => "")), "w") do fout
-        for l in eachline(fin)
-            println(fout, replace(l, "%ROOT_VERSION%" => root_version, "%CLEAN%"=> !noclean))
-        end
-    end
-end
 
 cp(joinpath("src", makefile), joinpath(builddir, "ROOT", "deps", replace(makefile, r"\.in$" => "")), force=true)
+
+#generate root_version.jl file
+open(joinpath(builddir, "ROOT", "src", "root_versions.jl"), "w") do io
+    println(io, """
+const wrapped_root_version = v"$root_version"
+const supported_root_versions = [ wrapped_root_version ]
+
+""")
+end
 
 for f in jlsrc
     cp(joinpath("src", f), joinpath(builddir, "ROOT", "src", f), force=true)
@@ -193,25 +202,28 @@ project = TOML.parsefile(toml_path)
 
 project["authors"] = [ "Philippe Gras CEA/IRFU" ]
 
-project["deps"]["Conda"] = "8f4d0f93-b110-5947-807f-2305c1781a2d"
+project["deps"]["Artifacts"] = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 project["deps"]["CxxWrap"] = "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
 project["deps"]["Libdl"] = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
-project["deps"]["Pkg"] = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+project["deps"]["ROOT_jll"] = "45b42145-bbac-5752-8807-01f8b2702242"
+project["deps"]["ROOTprefs"] = "492d890c-d9c4-11ef-b95f-3722e36032c2"
+project["deps"]["SHA"] = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 project["deps"]["Scratch"] = "6c6a2e73-6563-6170-7368-637461726353"
 project["deps"]["TOML"] = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
-project["deps"]["UUIDs"] = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
+project["deps"]["libroot_julia_jll"] = "2e5227ad-a2cb-5771-a73d-8331af68b27e"
+
 
 haskey(project, "extras") || (project["extras"] = Dict{String, Any}())
+project["extras"]["Pkg"] = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 project["extras"]["Test"] = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-project["extras"]["UnROOT"] = "3cd96dde-e98d-4713-81e9-a4a1b0235ce9"
+
 
 haskey(project, "targets") || (project["targets"] = Dict{String, Any}())
-project["targets"]["test"] = ["Test", "UnROOT"]
+project["targets"]["test"] = ["Test", "Pkg"]
 
 haskey(project, "compat") || (project["compat"] = Dict{String, Any}())
 project["compat"]["julia"] = "1.6"
-project["compat"]["Scratch"] = "1.2"
-project["compat"]["Conda"] = "1.10"
+#project["compat"]["Scratch"] = "1.2"
 
 open(toml_path, "w") do f
     TOML.print(f, project)
