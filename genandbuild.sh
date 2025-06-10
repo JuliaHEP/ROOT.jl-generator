@@ -10,7 +10,7 @@ Usage: genandbuid.sh DESTDIR
 EOF
 }
 
-temp=`getopt -o h --long update,noclean,force \
+temp=`getopt -o h --long update,noclean,nobuild,force \
      -n 'genandbuild.sh' -- "$@"`
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$temp"
@@ -18,6 +18,7 @@ eval set -- "$temp"
 unset gen_opts
 unset updatemode
 unset force
+unset nobuild
 
 while true ; do
     case "$1" in
@@ -25,6 +26,7 @@ while true ; do
         --update) gen_opts="$gen_opts --update"; updatemode=y; shift;;
         --noclean) gen_opts="$gen_opts --noclean"; shift;;
         --force) force=y; shift;;
+        --nobuild) nobuild=y; shift;;
         --) shift ; break ;; #end of options. It remains only the args.
         *) echo "Internal error!" ; exit 1 ;;
     esac
@@ -79,7 +81,8 @@ cp -a "$gendir/build/ROOT-$root_version/ROOT/"{src,deps,Project.toml} . || die "
 [ -d misc ] || mkdir misc || die "Failed to create `pwd`/misc directory"
 cp -a "$gendir/build/ROOT-$root_version/"{jlROOT-report.txt,jlROOT-veto.h,ROOT.wit} misc/
 
-julia --project=. -e 'import Pkg; Pkg.build(verbose=true); Pkg.test()'
+#julia --project=. -e 'import Pkg; Pkg.build(verbose=true); Pkg.test()'
+[ "$nobuild" = y ] || julia --project=. -e 'import ROOTprefs; ROOTprefs.use_root_jll!(false); ROOTprefs.set_ROOTSYS!(nothing); import ROOT; import Pkg; Pkg.test()'
 
 cat <<EOF
 **********************************************************************

@@ -205,13 +205,13 @@ project["authors"] = [ "Philippe Gras CEA/IRFU" ]
 project["deps"]["Artifacts"] = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 project["deps"]["CxxWrap"] = "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
 project["deps"]["Libdl"] = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
+project["deps"]["Preferences"] = "21216c6a-2e73-6563-6e65-726566657250"
 project["deps"]["ROOT_jll"] = "45b42145-bbac-5752-8807-01f8b2702242"
+project["deps"]["ROOT_julia_jll"] = "4f7db680-92c2-5241-a1f0-57b96f62fa1d"
 project["deps"]["ROOTprefs"] = "492d890c-d9c4-11ef-b95f-3722e36032c2"
 project["deps"]["SHA"] = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 project["deps"]["Scratch"] = "6c6a2e73-6563-6170-7368-637461726353"
 project["deps"]["TOML"] = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
-project["deps"]["libroot_julia_jll"] = "2e5227ad-a2cb-5771-a73d-8331af68b27e"
-
 
 haskey(project, "extras") || (project["extras"] = Dict{String, Any}())
 project["extras"]["Pkg"] = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
@@ -223,9 +223,11 @@ project["targets"]["test"] = ["Test", "Pkg"]
 
 haskey(project, "compat") || (project["compat"] = Dict{String, Any}())
 project["compat"]["julia"] = "1.6"
-#project["compat"]["Scratch"] = "1.2"
+project["compat"]["Scratch"] = "1.2"
+project["compat"]["Preferences"] = "1.4"
+project["compat"]["ROOT_julia_jll"] = "1.0.0"
 
 open(toml_path, "w") do f
-    TOML.print(f, project)
+    TOML.print(f, project, sorted=true)
 end
 println("Generated files in $builddir/ROOT")

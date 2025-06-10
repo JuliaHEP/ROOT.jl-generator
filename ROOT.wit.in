@@ -71,7 +71,7 @@ julia_names         = [ "TDirectoryFile::Get -> Get_", "TDirectory::Get -> Get_"
 fields_and_variables = true
 
 # Currently not working with CxxWrap 0.15+, use 0.14.x
-cxxwrap_version = "0.16"
+cxxwrap_version = "0.17"
 
 #auto_veto           = false
 
