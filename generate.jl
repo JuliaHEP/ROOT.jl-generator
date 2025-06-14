@@ -223,9 +223,15 @@ project["targets"]["test"] = ["Test", "Pkg"]
 
 haskey(project, "compat") || (project["compat"] = Dict{String, Any}())
 project["compat"]["julia"] = "1.6"
-project["compat"]["Scratch"] = "1.2"
+project["compat"]["CxxWrap"] = "0.17"
 project["compat"]["Preferences"] = "1.4"
-project["compat"]["ROOT_julia_jll"] = "1.0.0"
+project["compat"]["ROOTprefs"] = "1.0"
+project["compat"]["Scratch"] = "1.2"
+project["compat"]["ROOT_jll"] = "6.32.8 - 6.32.9"
+project["compat"]["ROOT_julia_jll"] = "1.0"
+project["compat"]["SHA"] = "0.7"
+project["compat"]["TOML"] = "1.0"
+
 
 open(toml_path, "w") do f
     TOML.print(f, project, sorted=true)
