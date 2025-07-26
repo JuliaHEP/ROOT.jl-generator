@@ -82,7 +82,7 @@ cp -a "$gendir/build/ROOT-$root_version/ROOT/"{src,deps,Project.toml} . || die "
 cp -a "$gendir/build/ROOT-$root_version/"{jlROOT-report.txt,jlROOT-veto.h,ROOT.wit} misc/
 
 #julia --project=. -e 'import Pkg; Pkg.build(verbose=true); Pkg.test()'
-[ "$nobuild" = y ] || julia --project=. -e 'import ROOTprefs; ROOTprefs.set_use_root_jll(false); ROOTprefs.set_ROOTSYS!(nothing); import ROOT; import Pkg; Pkg.test()'
+[ "$nobuild" = y ] || julia --project=. -e 'import ROOTprefs; ROOTprefs.set_use_root_jll(false); ROOTprefs.set_ROOTSYS(nothing); import ROOT; import Pkg; Pkg.test()'
 
 cat <<EOF
 **********************************************************************
