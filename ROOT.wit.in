@@ -68,7 +68,8 @@ extra_headers       = [ "TVectorT.h" ]
 
 veto_list           = "src/jlROOT-veto.h"
 
-julia_names         = [ "TDirectoryFile::Get -> Get_", "TDirectory::Get -> Get_" ]
+julia_names         = [ "TDirectoryFile::Get -> Get_", "TDirectory::Get -> Get_",
+                        "begin -> thebegin", "start -> thestart", "end -> theend" ]
 
 fields_and_variables = true
 

@@ -1,0 +1,23 @@
+#!/usr/bin/env julia
+import Pkg
+Pkg.activate(joinpath(@__DIR__, ".."))
+
+using ROOTdocGen.DoxyReader
+using ROOTdocGen.ROOTdocDB: fixcolons
+using Glob
+#using StatProfilerHTML
+
+function main()
+    if length(ARGS) != 2 || ARGS[1] != "-o"
+        println(stderr, "Usage: fillcolons -o database_file")
+        return 1
+    end
+
+    dbfilename = ARGS[2]
+
+    conn = Conn(dbfilename)
+    
+    fixcolons(conn)
+end
+
+main()

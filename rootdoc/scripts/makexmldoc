@@ -1,0 +1,102 @@
+#!/bin/bash
+
+
+help(){
+    echo "Usage: makexmldoc ROOT_SRC_DIR"
+}
+
+if [ $# != 1 ]; then
+    help 1>&2
+    exit 1
+fi
+
+if [ "$1" = -h -o "$1" = --help ]; then
+    help
+    exit 0
+fi
+
+die(){
+    echo "$@" 1>&2
+    exit 1
+}
+
+tmpdir="`mktemp -d`" || die "Error. Failed to create a temporary directory."
+[ -z "`ls -A "$tmpdir"`" ]  || die "Error. Newly created directory '$tmpdir' is not empty?!? There is a problem."
+cleanup(){
+    [ -d "$tmpdir" ] && rm -rf "$tmpdir"
+}
+trap cleanup EXIT
+
+export DOXYGEN_SOURCE_DIRECTORY="`realpath "$1"`"
+
+[ -d "$DOXYGEN_SOURCE_DIRECTORY" ] || die "'$DOXYGEN_SOURCE_DIRECTORY' is not a directory."
+
+export DOXYGEN_OUTPUT_DIRECTORY="`pwd`/doxydoc"
+
+#remove doxydoc if it is empty, emit an error if it contents files
+rmdir "$DOXYGEN_OUTPUT_DIRECTORY" 2>/dev/null
+[ -d "$DOXYGEN_OUTPUT_DIRECTORY" ] && die "Error. Directory $DOXYGEN_OUTPUT_DIRECTORY in on the way. Move it and restart."
+mkdir "$DOXYGEN_OUTPUT_DIRECTORY"
+mkdir "$DOXYGEN_OUTPUT_DIRECTORY/html"
+
+export Python3_EXECUTABLE=python3
+which "$Python3_EXECUTABLE" 1>/dev/null || die "Error. Missing $Python3_EXECUTABLE command."
+
+which doxygen 1>/dev/null || die "Error. Command doxygen not found. Please install doxygen."
+
+if ! which root 1>/dev/null; then
+    if [ -x "$DOXYGEN_OUTPUT_DIRECTORY/bin/root" -a -f  "$DOXYGEN_OUTPUT_DIRECTORY/bin/thisroot.sh" ]; then
+        source "$DOXYGEN_OUTPUT_DIRECTORY/bin/thisroot.sh"
+    fi
+fi
+
+which root-config 1>/dev/null || die "Error. The root-config command is required. Please set up ROOT environment."
+
+ROOT_LIBDIR="`root-config --libdir`"
+
+# add ROOT lib dir to PYTHONPATH is not yet in:
+if ! echo "$PYTHONPATH" | tr ':' '\n' | grep -q "$ROOT_LIBDIR"; then
+    PYTHONPATH="$PYTHONPATH${PYTHONPATH:+:}$ROOT_LIBDIR"
+fi
+
+[ -f "$DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/Doxyfile" ] || die "Error. No file $DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/Doxyfile found."
+[ -f "$DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/makeinput.sh" ] || die "Error $DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/makeinput.sh."
+
+#cd "$tmpdir" || die "Error. Failed to enter temporary directory."
+cd "$DOXYGEN_OUTPUT_DIRECTORY"
+
+cp "$DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/makeimage.C" .
+cp "$DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/makeimage.py" .
+
+sed 's/\(GENERATE_XML[[:space:]]*=[[:space:]]\).*/\1YES/
+s/\(GENERATE_HTML[[:space:]]*=[[:space:]]\).*/\1NO/
+s/\(GENERATE_TAGFILE[[:space:]]*=[[:space:]]\).*/\1NO/
+s/\(HTML_FOOTER[[:space:]]*=\).*/\1/
+s/\(HTML_HEADER[[:space:]]*=\).*/\1/
+s/\(XML_PROGRAMLISTING[[:space:]]*=\).*/\1NO/' "$DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/Doxyfile" > Doxyfile
+
+"$DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/makeinput.sh" || die "Error. Failed to run makeinput.sh"
+[ -f Doxyfile_INPUT ] || die "Error. File Doxyfile_INPUT expected to be produced by makeinput.sh not found."
+
+sed -i "s@\.\./\.\./@$DOXYGEN_SOURCE_DIRECTORY/@g
+s@\./@$DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/@g" Doxyfile_INPUT
+
+cp "$DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/filter.cxx" . || die "Error. File $DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/filter.cxx not found."
+g++ -o filter -Wall filter.cxx || die "Error. Failed to compile $DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/filter.cxx"
+
+sed 's/\(GENERATE_XML[[:space:]]*=[[:space:]]\).*/\1YES/
+s/\(GENERATE_HTML[[:space:]]*=[[:space:]]\).*/\1NO/
+s/\(GENERATE_TAGFILE[[:space:]]*=[[:space:]]\).*/\1NO/
+s/\(EXTRACT_PRIVATE[[:space:]]*=[[:space:]]\).*/\1NO/
+s/\(INLINE_INFO[[:space:]]*=[[:space:]]\).*/\1NO/
+s/\(SHOW_USED_FILE[[:space:]]*=[[:space:]]\).*/\1NO/
+s/\(VERBATIM_HEADERS[[:space:]]*=[[:space:]]\).*/\1NO/
+s/\(HTML_FOOTER[[:space:]]*=\).*/\1/
+s/\(HTML_HEADER[[:space:]]*=\).*/\1/
+s/\(XML_PROGRAMLISTING[[:space:]]*=\).*/\1NO/'  "$DOXYGEN_SOURCE_DIRECTORY/documentation/doxygen/Doxyfile" > Doxyfile
+
+sed -i 's@.*/tutorials/.*@@
+s@.*/bindings/.*@@
+' Doxyfile_INPUT
+
+doxygen 

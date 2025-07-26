@@ -1,0 +1,53 @@
+#!/usr/bin/env julia
+# -*- mode: julia; indent-tabs-mode: nil; tab-width: 4 -*-
+# vim: set ft=julia ts=4 sw=4 expandtab:
+
+import Pkg
+Pkg.activate(joinpath(@__DIR__, ".."))
+
+
+module FillWrapped
+
+using ROOTdocGen.ROOTdocDB
+
+function fillfromreport(dbfilename, reportfilename)
+
+    conn = Conn(dbfilename)
+    
+    init = 0
+    types = 1
+    methods = 2
+    state = init
+    open(reportfilename) do f
+        for l in eachline(f)
+            l = strip(l)
+            if startswith(l, "List of wrapped class")
+                state = types
+            elseif startswith(l, "List of wrapped methods")
+                state = methods
+            elseif state == types
+                println("Register type '", strip(l), "'")
+                register_wrapped_type(conn, strip(l))
+            elseif state == methods
+                println("Register method '", strip(l), "'")
+                register_wrapped_method(conn, strip(l))
+            end
+        end
+    end
+end
+end
+
+import .FillWrapped
+
+function main()
+    if length(ARGS) != 3 || ARGS[1] != "-o"
+        println(stderr, "Usage: julia fillwrapped -o database_file wrapit_report_file")
+        return 1
+    end
+    dbfilename, reportfilename = ARGS[2], ARGS[3]
+    FillWrapped.fillfromreport(dbfilename, reportfilename)
+end
+
+
+main()
+

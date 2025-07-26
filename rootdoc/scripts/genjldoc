@@ -1,0 +1,51 @@
+#!/usr/bin/env julia
+# -*- mode: julia; indent-tabs-mode: nil; tab-width: 4 -*-
+# vim: set ft=julia ts=4 sw=4 expandtab:
+
+import Pkg
+Pkg.activate(joinpath(@__DIR__, ".."))
+using ROOTdocGen
+using ROOTdocGen.ROOTdocDB
+
+function main()
+    if !(length(ARGS) == 1 || (length(ARGS) == 3 && ARGS[1] == "-o"))
+        println(stderr, "Usage: genjldoc [-o output_file] database_file")
+        return 1
+    end
+
+    if length(ARGS) == 3
+        output = open(ARGS[2], "w")
+        dbfilename = ARGS[3]
+    else #length(ARGS) is 1
+        output =  stdout
+        dbfilename = ARGS[1]
+    end
+
+    conn = Conn(dbfilename)
+
+    println(output, typealiases())
+
+    for (i, doc) in enumerate(jldocs(conn))
+        println(output, [ """######################################################################
+# Documentation of ROOT types""",
+                          """#
+######################################################################
+
+######################################################################
+# Documentation of ROOT methods"""][i])
+        for (cxxsignature, jlsignature, jldoc) in doc
+#            println(stderr, "Documenting ", jlsignature)
+            println(output, "\n# Wrapper of ", cxxsignature)
+            println(output, "@trydoc raw\"\"\"")
+            println(output, jldoc)
+            sign_without_return_type = replace(jlsignature, r"::(?!.*::).*" => "")
+            println(output, "\"\"\" ", sign_without_return_type)
+        end
+    end
+    println(output, """#
+######################################################################""")
+end
+
+main()
+
+

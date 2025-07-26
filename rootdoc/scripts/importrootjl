@@ -1,0 +1,23 @@
+#!/usr/bin/env julia
+# -*- mode: julia; indent-tabs-mode: nil; tab-width: 4 -*-
+# vim: set ft=julia ts=4 sw=4 expandtab:
+
+import Pkg
+Pkg.activate(joinpath(@__DIR__, ".."))
+
+
+using ROOT
+using ROOTdocGen
+
+function main()
+    if length(ARGS) != 2 || ARGS[1] != "-o"
+        println(stderr, "Usage: julia importrootjl -o database_file")
+        return 1
+    end
+    dbfilename = ARGS[2]
+    importnames(dbfilename)
+end
+
+
+main()
+

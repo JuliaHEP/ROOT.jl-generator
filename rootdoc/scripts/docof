@@ -1,0 +1,16 @@
+#!/usr/bin/env julia
+
+import Pkg
+Pkg.activate(joinpath(@__DIR__, ".."))
+
+import ROOTdocGen
+using ROOTdocGen.ROOTdocDB
+
+if length(ARGS) != 2
+    println(stderr, "Usage: docof.jl database signature")
+    exit(1)
+end
+
+conn = ROOTdocGen.ROOTdocDB.Conn(ARGS[1])
+println(dbgetmethoddoc(conn, ARGS[2]))
+

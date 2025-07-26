@@ -68,7 +68,28 @@ TVirtualFitter::FCNFunc_t TVirtualFitter::GetFCN();
 void TFractionFitFCN(Int_t &, Double_t *, Double_t &, Double_t *, Int_t);
 
 //Generates a build error
-TMatrixTBase
+TMatrixTBase;
 
 //Generates a build error
-Vc_1::Vector
+Vc_1::Vector;
+
+//Leads to an error on module import
+std::set;
+
+//Prevents the ROOT.jl module precompilation with the error "ERROR: Method overwriting is not permitted during Module precompilation. Use `__precompile__(false)` to opt-out of precompilation". see https://github.com/JuliaInterop/CxxWrap.jl/issues/485
+void ROOT::EnableImplicitMT(ROOT::EIMTConfig);
+
+//Allocation operators do not need to be called directly from Julia
+void *operator TObject::new(size_t);
+void *operator TObject::new[](size_t);
+void *operator TObject::new(size_t sz);
+void *operator TObject::new[](size_t, void *);
+void operator TObject::delete(void *);
+void operator TObject::delete[](void *);
+void operator TObject::delete(void*, size_t);
+void operator TObject::delete[](void*, size_t);
+void operator TObject::delete(void *, void *);
+void operator TObject::delete[](void *, void *);
+
+
+  

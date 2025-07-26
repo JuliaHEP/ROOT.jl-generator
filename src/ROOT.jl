@@ -117,4 +117,6 @@ Check that binding library is available and the package is functionnal.
 When using C++ ROOT libraries installed externally to the Julia packager, a binding library is compiled during the ROOT package precompilation. If the library compilation fails, an error message is displayed, but the user will still be able to import the ROOT module. Use this ok() function to check after an import e.g., in a script, that the ROOT module is usable.
 """ ok 
 
+include("ROOTdoc.jl")
+
 end #module

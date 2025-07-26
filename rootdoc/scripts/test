@@ -1,0 +1,14 @@
+#!/bin/bash -e
+
+#[ -f tmp1.sqlite ] && rm tmp1.sqlite
+#./fillwrapped -o tmp1.sqlite ~/dev/julia/ROOT.jl/misc/jlROOT-report.txt 1>/dev/null
+for f in ../doxydoc/xml/class*.xml; do
+    cp tmp1.sqlite tmp2.sqlite
+    echo "$f"
+    ./filldoxy -o tmp2.sqlite "$f"
+    echo "Gen doc.."
+    ./genjldoc -o ~/dev/julia/ROOT.jl/src/ROOTdoc.jl tmp2.sqlite
+    echo "Test doc.."
+    (cd ../../../ROOT.jl/docs && julia --project=. make.jl || exit 1)
+    [ $? = 0 ] || break
+done

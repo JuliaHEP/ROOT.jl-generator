@@ -51,7 +51,7 @@ else
     die "root-config command not found. Make sure ROOT binary directory is included in the list defined by the environment variable PATH"
 fi
 
-[ -d "$rootjl" ] || die "Directory $rootjl not found. The passed argument must be a valid directory."
+[ -d "$rootjl" ] || mkdir "$rootjl" || die "Directory $rootjl not found. The passed argument must be a valid directory."
 
 
 if [ "$force" = y ]; then 

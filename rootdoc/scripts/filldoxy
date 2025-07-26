@@ -1,0 +1,39 @@
+#!/usr/bin/env julia
+import Pkg
+Pkg.activate(joinpath(@__DIR__, ".."))
+
+using ROOTdocGen.DoxyReader
+using ROOTdocGen.ROOTdocDB: fixcolons, wrapped_types, wrapped_methods
+using Glob
+#using StatProfilerHTML
+
+function main()
+    if length(ARGS) != 3 || ARGS[1] != "-o"
+        println(stderr, "Usage: filldoxy -o database_file directory|xml_file")
+        return 1
+    end
+
+    dbfilename = ARGS[2]
+    input = ARGS[3]
+
+    conn = Conn(dbfilename)
+
+    
+    filelist = if(isdir(input))
+        wrapped = filter(x->!isempty(x), wrapped_types(conn))
+        #glob(joinpath(input, "class*.xml"))
+        patterns = map(x->[Glob.FilenameMatch("class" * replace(x, "::" => "_1_1") * "*.xml")], wrapped)
+        collect(Iterators.Flatten(glob.(patterns, input)))
+    else
+        [ input ]
+    end
+    
+    nfiles = length(filelist)
+    for (ifile, filename) in enumerate(filelist)
+        println("[", ifile, "/", nfiles, "] Parsing file ", filename)
+        filldb(conn, filename)
+    end
+    fixcolons(conn)
+end
+
+main()

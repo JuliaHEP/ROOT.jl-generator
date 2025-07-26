@@ -1,0 +1,27 @@
+#!/bin/bash -e
+mypath="`realpath "$0"`"
+myname="`basename "$mypath"`"
+mydir="`dirname "$mypath"`"
+
+die(){
+    echo "$@" 1>&2
+    exit 1
+}
+
+unset forced
+if [ "$1" = --force ]; then
+    forced=y
+fi
+
+if [ -f "$mydir/../jldoc.sqlite" ]; then
+    if [ "$forced" = y ]; then
+        rm "$mydir/../jldoc.sqlite"
+    else
+        die "$mydir/../jldoc.sqlite is on the way. Please move the file or use the --force option."
+    fi
+fi
+        
+
+./filldoxy -o ../jldoc.sqlite ../doxydoc/xml/
+./fillwrapped -o ../jldoc.sqlite ~/dev/julia/ROOT.jl/misc/jlROOT-report.txt
+./genjldoc -o ~/dev/julia/ROOT.jl/src/ROOTdoc.jl ../jldoc.sqlite

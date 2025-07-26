@@ -1,0 +1,71 @@
+#!/bin/bash -e
+mypath="`realpath "$0"`"
+myname="`basename "$mypath"`"
+mydir="`dirname "$mypath"`"
+
+die(){
+    echo "$@" 1>&2
+    exit 1
+}
+
+temp=`getopt -o '' --long skip-fillwrapped,skip-filldoxy,skip-docbuild -n "$myname" -- "$@"`
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$temp"
+fillwrapped=y
+filldoxy=y
+docbuild=y
+while true ; do
+    case "$1" in
+        --skip-fillwrapped) fillwrapped=n; shift;;
+        --skip-filldoxy) filldoxy=n; shift;;
+        --skip-docbuild) docbuild=n; shift;;
+        --) shift ; break ;; #end of options. It remains only the args.
+        *) echo "Internal error!" ; exit 1 ;;
+    esac
+done
+
+rootsrc="$1"
+rootjldir="`realpath "$mydir/../../../ROOT.jl"`"
+rootdocjl="$rootjldir/src/ROOTdoc.jl"
+
+[ "`pwd`" = "$mydir" ] || die "This script must be run from $mydir directory."
+
+[ -d "$rootjldir" ] || die "$rootjldir not found. This scripts needs the ROOT.jl and ROOT.jl-generator  packages to be in the same directory"
+
+dbfile=../jldoc.sqlite
+xmldir=../doxydoc/xml
+
+if ! [ -d "$xmldir" ]; then
+    if [ -z "$rootsrc" ]; then
+        die "Directory $xmldir missing. To generate it, you need to provide the path to the ROOT source code as argument."
+    elif ! [ -d "$rootsrc" ]; then
+        die "Provided ROOT source code directory, $rootsrc, not found."
+    else
+        "./makexmldoc" "$rootsrc" || die "Failed to generate required doxy documentation."
+    fi
+fi
+
+if [ $fillwrapped = y ]; then
+    if [ -f "$dbfile" ]; then
+        sqlite3 "$dbfile" 'DELETE FROM wrapped_methods;'
+        sqlite3 "$dbfile" 'DELETE FROM wrapped_types;'
+    fi
+    ./fillwrapped -o "$dbfile" ~/dev/julia/ROOT.jl/misc/jlROOT-report.txt
+fi
+    
+if [ $filldoxy = y ]; then
+    if [ -f "$dbfile" ]; then
+        sqlite3 "$dbfile" 'DELETE FROM method_doc;'
+        sqlite3 "$dbfile" 'DELETE FROM type_doc;'
+    fi
+    ./filldoxy -o "$dbfile" "$xmldir"
+fi
+
+
+./genjldoc -o "$rootdocjl" "$dbfile"
+
+if [ $docbuild = y ]; then
+    [ -d "$rootjldir/docs" ] || die "Directory $rootjldir/docs required to build the documentation is missing."    
+    [ -f "$rootjldir/docs/make.jl" ] || die "File $rootjldir/docs/make.jl required to build the documentation is missing."  
+    (cd "$rootjldir/docs" && julia --project=. make.jl)
+fi

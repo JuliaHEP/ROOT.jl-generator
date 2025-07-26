@@ -1,0 +1,12 @@
+name = "ROOTdocGen"
+uuid = "6f6c7548-4cf2-4e26-9c0a-52a0a9a33258"
+
+[deps]
+Debugger = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
+Doxygen_jll = "e79d16a5-2ad2-5b5c-99b8-a0c382a386e2"
+EzXML = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
+Glob = "c27321d9-0574-5035-807b-f59d2c89b15c"
+PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
+ROOT = "1706fdcc-8426-44f1-a283-5be479e9517c"
+SQLite = "0aa819cd-b072-5ff4-a722-6bc24af294d9"
+TextWrap = "b718987f-49a8-5099-9789-dcd902bef87d"
