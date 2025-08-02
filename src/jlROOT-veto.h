@@ -4,7 +4,7 @@
 int TSystem::GetPathInfo(const char *, Long_t *, Long64_t *, Long_t *, Long_t *);
 
 // Protected access of TROOT::new prevents TROOT contructor wrapper to work,
-void TROOT::TROOT(const char *, const char *, VoidFuncPtr_t *);
+TROOT::TROOT(const char *, const char *, VoidFuncPtr_t *);
 
 // Wrapper failes to compile due to the return type, void (*)()
 // (complains a conversion method to a Julia type is missing).
@@ -13,16 +13,15 @@ Func_t TSystem::DynFindSymbol(const char *, const char *);
 // Following methods have a similar ones, where parameters of the callback
 // function are declared as const. Only one signature of callback function
 // can be wrapped.
-void TF1::TF1(const char *, Double_t (*)(Double_t *, Double_t *), Double_t, Double_t, Int_t, Int_t, TF1::EAddToList);
-void TF2::TF2(const char *, Double_t (*)(Double_t *, Double_t *), Double_t, Double_t, Double_t, Double_t, Int_t, Int_t);
-void TF3::TF3(const char *, Double_t (*)(Double_t *, Double_t *), Double_t, Double_t, Double_t, Double_t, Double_t, Double_t, Int_t, Int_t);
+TF1::TF1(const char *, Double_t (*)(Double_t *, Double_t *), Double_t, Double_t, Int_t, Int_t, TF1::EAddToList);
+TF2::TF2(const char *, Double_t (*)(Double_t *, Double_t *), Double_t, Double_t, Double_t, Double_t, Int_t, Int_t);
+TF3::TF3(const char *, Double_t (*)(Double_t *, Double_t *), Double_t, Double_t, Double_t, Double_t, Double_t, Double_t, Int_t, Int_t);
 
 /.*std::[io]stream.*/;
 
 TTreeReader::Iterator_t TTreeReader::Iterator_t::operator++(int);
-libROOT/src/JlClasses_008.cxx:379:    t.method("++", static_cast<TTreeReader::Iterator_t (TTreeReader::Iterator_t::*)(int) >(&TTreeReader::Iterator_t::operator++));
 TTreeReader::Iterator_t & TTreeReader::Iterator_t::operator++();
-void ROOT::RDataFrame::RDataFrame(std::unique_ptr<ROOT::RDF::RDataSource>, const ROOT::RDataFrame::ColumnNames_t &);
+ROOT::RDataFrame::RDataFrame(std::unique_ptr<ROOT::RDF::RDataSource>, const ROOT::RDataFrame::ColumnNames_t &);
 /ROOT::RDataFrame ROOT::Internal::.*/;
 
 TLeaf::GetValueHelper;
@@ -91,5 +90,114 @@ void operator TObject::delete[](void*, size_t);
 void operator TObject::delete(void *, void *);
 void operator TObject::delete[](void *, void *);
 
+//causes an error on accessor creation because it is an c-array,
+//and wrapit does not detect it
+ExceptionContext_t::fBuf;
 
-  
+//deprecated RooFit methods:
+TIterator * RooAbsArg::clientIterator()
+TIterator * RooAbsArg::valueClientIterator()
+TIterator * RooAbsArg::shapeClientIterator()
+TIterator * RooAbsArg::serverIterator()
+RooFIter RooAbsArg::valueClientMIterator()
+RooFIter RooAbsArg::shapeClientMIterator()
+RooFIter RooAbsArg::serverMIterator()
+
+ROOT::TVirtualRWMutex::StateAndRecurseCount::fState!;
+
+//returns a function pointer which is not supported.
+ReAllocCharFun_t TBuffer::GetReAllocFunc();
+
+//function pointer. Generated accessor not currently correct
+//gThreadTsd;
+//gThreadXAR;
+//gGXBatch;
+//gPtr2VirtualX;
+
+//causes issue with std::char_traits, should have their
+//custom wrappers as other std classes like StdVector for std::vector
+std::basic_string_view;
+std::basic_ofstream;
+
+//Deprecated
+TStringLong;
+
+//not relevant for the user:
+/.*::ShowMembers(.*).*/;
+/.*ROOT::Internal::.*/;
+/.*ROOT::Detail::.*/;
+/.*RooFit::Detail::.*/;
+
+//causing errors, but not essential for the user
+ROOT::TSeq::iterator;
+
+//clang 19 does not recognize TAxis(std::vector<double> const &bins)
+//and returns TAxis::TAxis(const int &) that we need to veto
+TAxis::TAxis(const int &);
+const int & TF1Parameters::ParamsVec();
+TF1NormSum::TF1NormSum(const int &, const int &, Double_t);
+int TF1NormSum::GetParameters();
+
+//unsuppored std classes
+/.*std::pair<.*/;
+
+/.*::Copy(TAtt.* &)/;
+
+//Causes overwritten errors on module precompilation
+Int_t TBuffer::ReadStaticArray(UChar_t *);
+Int_t TBuffer::ReadStaticArray(ULong_t *);
+Int_t TBuffer::ReadStaticArray(Long_t *);
+void TBuffer::ReadFastArray(UChar_t *, Int_t);
+void TBuffer::ReadFastArray(ULong_t *, Int_t);
+void TBuffer::ReadFastArray(Long_t *, Int_t);
+void TBuffer::WriteArray(const UChar_t *, Int_t);
+void TBuffer::WriteArray(const ULong_t *, Int_t);
+void TBuffer::WriteArray(const Long_t *, Int_t);
+void TBuffer::WriteFastArray(const UChar_t *, Long64_t);
+void TBuffer::WriteFastArray(const ULong_t *, Long64_t);
+void TBuffer::WriteFastArray(const Long_t *, Long64_t);
+
+//Causes double registration errors
+//(with Long_t version? Why?)
+TBuffer & ::operator>>(TBuffer &, Bool_t &);
+TBuffer & ::operator>>(TBuffer &, Char_t &);
+TBuffer & ::operator>>(TBuffer &, UChar_t &)
+TBuffer & ::operator>>(TBuffer &, UInt_t &)
+TBuffer & ::operator>>(TBuffer &, Short_t &);
+TBuffer & ::operator>>(TBuffer &, UShort_t &);
+TBuffer & ::operator>>(TBuffer &, Int_t &);
+TBuffer & ::operator>>(TBuffer &, ULong_t &);
+TBuffer & ::operator>>(TBuffer &, Char_t *);
+TBuffer & ::operator<<(TBuffer &, const Char_t *);
+
+//Overwritten overwritten error with version with (U)Long64_t in place of (U)Long_t
+ULong_t ::host2net(ULong_t)
+Long_t ::host2net(Long_t)
+ULong_t ::net2host(ULong_t)
+Long_t ::net2host(Long_t)
+
+//deprecated by ROOT
+TList::TList(TObject *);
+Bool_t TGeoBBox::AreOverlapping(const TGeoBBox *, const TGeoMatrix *, const TGeoBBox *, const TGeoMatrix *);
+
+//Causes a overwritten errors
+UInt_t ::Hash(const TString &);
+UInt_t ::Hash(const TString *);
+TString::TString(Ssiz_t);
+TString & TString::Remove(TString::EStripType, char);
+
+//to prevent double registration with Long64_t version:
+Long_t ::TMath::Abs(Long_t);
+Long_t ::TMath::Min(Long_t);
+Long_t ::TMath::Min(ULong_t);
+Long_t ::TMath::Max(Long_t);
+Long_t ::TMath::Max(ULong_t);
+
+//overwritten error with methods with Int_t in place of Window_t
+void TVirtualX::MoveWindow(Window_t, Int_t, Int_t);
+void TVirtualX::SetCursor(Window_t, Cursor_t);
+
+//overwrite void ::frombuf(char *&, UChar_t *) preventing ROOT module
+//precompilation
+void ::frombuf(char *&, Bool_t *);
+

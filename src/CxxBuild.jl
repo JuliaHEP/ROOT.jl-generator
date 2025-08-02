@@ -53,6 +53,7 @@ function build_root_wrapper(rootsys = ROOTprefs.get_ROOTSYS())
     JL_SHARE = joinpath(Sys.BINDIR, Base.DATAROOTDIR, "julia")
     JULIA = joinpath(Sys.BINDIR, "julia")
     depsdir = joinpath(dirname(@__DIR__), "deps")
+    srcdir = joinpath(depsdir, "src")
     cmd=`make -C "$depsdir" BUILD_DIR="$buildpath" CXXWRAP_PREFIX="$CXXWRAP_PREFIX" JL_SHARE="$JL_SHARE" JULIA="$JULIA" ROOT_CONFIG="$rootconfig" -j $(Sys.CPU_THREADS) VDT_DIR="$(VDT_jll.artifact_dir)"`
     extra_make_options = ROOTprefs._load_preference("extra_make_options", "")
     if !isempty(extra_make_options)
@@ -82,7 +83,7 @@ function build_root_wrapper(rootsys = ROOTprefs.get_ROOTSYS())
 
     build = true
     
-    #Check if library is alredy built and up-to-date. Returns if it's the case.
+    #Check if library is already built and up-to-date. Returns if it's the case.
     sigfile = joinpath(scratch, "sig")
     if isfile(libpath) && isfile(sigfile)
         newsig = libsignature(joinpath(depsdir, "src"), srcfiles, libpath)
@@ -100,20 +101,53 @@ function build_root_wrapper(rootsys = ROOTprefs.get_ROOTSYS())
         cmd = Cmd(cmd, env = build_env, ignorestatus=true)
         cmd_clean = Cmd(cmd_clean, env = build_env, ignorestatus=true)
         pipe = Pipe()
+#            run(pipeline(`tee "$scratch/build.log"`, stdin=pipe, stdout=stdout, stderr=stderr), wait=false)            
+
+        #check if f1 is newer than f2. f1 considered very old (epoch timestamp) if it does not exist.
+        isfilenewerthan(f1, f2) = stat(f1).mtime > stat(f2).mtime 
+        objofsrc(srcfile) = joinpath(buildpath, replace(srcfile, r"\.[^.]*$" => ".o"))
+        println(join(objofsrc.(srcfiles), "\n"))
+        ntobuild = count(map(x -> isfilenewerthan(joinpath(srcdir, x), objofsrc(x)), srcfiles))
+        
+        if ntobuild > 0
+            warntimemsg = if ntobuild > 10
+                ", which will take some time. Be patient."
+            else
+                "."
+            end
+            println("\n>>> Making $ntobuild XYZ.o object files$warntimemsg <<<\n")
+        end
+
+        if ntobuild > 0
+            #if at least one object must be compiled,
+            #then there is also the .so to build
+            ntobuild += 1
+        end
+
+        # Run the build command `cmd`, add progress information to output,
+        # and send the output to both a log file and stdout
+        w = length(string(ntobuild))
         try
-            run(pipeline(`tee "$scratch/build.log"`, stdin=pipe, stdout=stdout, stderr=stderr), wait=false)            
-            
-            ncxx = length(srcfiles)
-            if ncxx > 0
-                warntime = if ncxx > 10
-                    ", which will take some time. Be patient."
-                else
-                    "."
+            pipe = Pipe()
+            proc = run(pipeline(cmd, stdout=pipe, stderr=pipe), wait=false)
+            @async open("$scratch/build.log", "w") do io
+                i = 0
+                for l in eachline(pipe)
+                    # insert [xxxx/yyyy] to the "Make xyz.o" lines: 
+                    pref = if startswith(l, "Make")
+                        i += 1
+                        "[" * lpad(i, w) * "/" * lpad(ntobuild, w) * "] "
+                    else
+                        ""
+                    end
+                    #print to stdout and file:
+                    println(pref, l)
+                    flush(stdout)
+                    println(io, pref, l)
                 end
-                println("\n>>> Making $ncxx XYZ.o object files$warntime <<<\n")
             end
             
-            run(pipeline(cmd, stderr=pipe, stdout=pipe))
+            wait(proc)
         finally
             close(pipe)
         end

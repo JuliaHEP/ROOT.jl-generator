@@ -1,5 +1,6 @@
 using WrapIt
 import TOML
+import VDT_jll
 
 root_version = readchomp(`root-config --version`)
 
@@ -87,7 +88,8 @@ rootincdir = readchomp(`root-config --incdir`)
 open(wit, "w") do f
     for l in eachline(witin)
 	println(f, replace(l, "%ROOT_INC_DIR%" => rootincdir,
-                           "%CLEAN%" => (noclean ? "false" : "true")))
+                           "%CLEAN%" => (noclean ? "false" : "true"),
+                           "%VDT_DIR%" => VDT_jll.artifact_dir))
     end
 end
 
@@ -212,7 +214,7 @@ project["deps"]["ROOTprefs"] = "492d890c-d9c4-11ef-b95f-3722e36032c2"
 project["deps"]["SHA"] = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 project["deps"]["Scratch"] = "6c6a2e73-6563-6170-7368-637461726353"
 project["deps"]["TOML"] = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
-
+project["deps"]["VDT_jll"] = "474730fa-5ea9-5b8c-8629-63de62f23418"
 haskey(project, "extras") || (project["extras"] = Dict{String, Any}())
 project["extras"]["Pkg"] = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 project["extras"]["Test"] = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
@@ -231,7 +233,7 @@ project["compat"]["ROOT_jll"] = "6.32.8 - 6.32.9"
 project["compat"]["ROOT_julia_jll"] = "1.0"
 project["compat"]["SHA"] = "0.7"
 project["compat"]["TOML"] = "1.0"
-
+project["compat"]["VDT_jll"] = "0.4.6"
 
 open(toml_path, "w") do f
     TOML.print(f, project, sorted=true)

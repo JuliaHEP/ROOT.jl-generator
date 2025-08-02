@@ -7,10 +7,14 @@ Usage: genandbuid.sh DESTDIR
    Generate code and copy it to DESTDIR (ROOT.jl top directory).
 
    --force: force deletion of DESTDIR/src, DESTDIR/deps, and DESTDIR/Project.toml
+   --update: enable update mode
+   --rootfromenv: generate the code from the ROOT installation of the shell environment
+                  instead of from ROOT_jll
+   --verbosity N: set wrapit verbosity level
 EOF
 }
 
-temp=`getopt -o h --long update,noclean,nobuild,force \
+temp=`getopt -o h --long update,noclean,nobuild,force,verbosity:,rootfromenv \
      -n 'genandbuild.sh' -- "$@"`
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$temp"
@@ -19,6 +23,7 @@ unset gen_opts
 unset updatemode
 unset force
 unset nobuild
+unset rootfromenv
 
 while true ; do
     case "$1" in
@@ -27,6 +32,8 @@ while true ; do
         --noclean) gen_opts="$gen_opts --noclean"; shift;;
         --force) force=y; shift;;
         --nobuild) nobuild=y; shift;;
+        --rootfromenv) rootfromenv=y; shift;;
+        --verbosity) gen_opts="$gen_opts --verbosity $2"; shift 2;;
         --) shift ; break ;; #end of options. It remains only the args.
         *) echo "Internal error!" ; exit 1 ;;
     esac
@@ -43,7 +50,18 @@ die(){
   exit 1
 }
 
+
 rootjl="$1"
+
+if [ -z "$rootfromenv" ]; then
+    ROOTSYS="`julia --project="$rootjl" -e 'import ROOT_jll; print(ROOT_jll.artifact_dir)'`"
+    [ $? != 0 -o -z "$ROOTSYS" ] && die "Failed to set ROOTSYS. Please check that ROOT_jll is in the Project.toml file of $rootjl project and that the project is instantiated."
+    
+    [ -f "$ROOTSYS/bin/thisroot.sh" ] || die "File $ROOTSYS/bin/thisroot.sh. Failed to set ROOT environment."
+    
+    source "$ROOTSYS/bin/thisroot.sh"
+fi
+
 root_version=`root-config --version`
 if [ $? = 0 ]; then
     echo "Code will be built for ROOT version $root_version"
@@ -81,8 +99,11 @@ cp -a "$gendir/build/ROOT-$root_version/ROOT/"{src,deps,Project.toml} . || die "
 [ -d misc ] || mkdir misc || die "Failed to create `pwd`/misc directory"
 cp -a "$gendir/build/ROOT-$root_version/"{jlROOT-report.txt,jlROOT-veto.h,ROOT.wit} misc/
 
+# src/ROOTdoc.jl needed to import ROOT
+[ -f src/ROOTdoc.jl ] || touch src/ROOTdoc.jl
+
 #julia --project=. -e 'import Pkg; Pkg.build(verbose=true); Pkg.test()'
-[ "$nobuild" = y ] || julia --project=. -e 'import ROOTprefs; ROOTprefs.set_use_root_jll(false); ROOTprefs.set_ROOTSYS(nothing); import ROOT; import Pkg; Pkg.test()'
+[ "$nobuild" = y ] || julia --project=. -e 'import ROOTprefs; ROOTprefs.set_use_root_jll(false); ROOTprefs.set_ROOTSYS(nothing); import ROOT;' # import Pkg; Pkg.test()'
 
 cat <<EOF
 **********************************************************************

@@ -1,3 +1,5 @@
 [deps]
 CxxWrap = "1f15a43c-97ca-5a2a-ae31-89f07a497df4"
+ROOT_jll = "45b42145-bbac-5752-8807-01f8b2702242"
+VDT_jll = "474730fa-5ea9-5b8c-8629-63de62f23418"
 WrapIt = "962878d8-9763-11ee-8c14-fbf60c98afae"
