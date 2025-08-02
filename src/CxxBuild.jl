@@ -12,6 +12,7 @@ import CxxWrap
 import Libdl
 import TOML
 import ROOT_julia_jll
+import VDT_jll
 import Artifacts
 import SHA
 
@@ -52,7 +53,7 @@ function build_root_wrapper(rootsys = ROOTprefs.get_ROOTSYS())
     JL_SHARE = joinpath(Sys.BINDIR, Base.DATAROOTDIR, "julia")
     JULIA = joinpath(Sys.BINDIR, "julia")
     depsdir = joinpath(dirname(@__DIR__), "deps")
-    cmd=`make -C "$depsdir" BUILD_DIR="$buildpath" CXXWRAP_PREFIX="$CXXWRAP_PREFIX" JL_SHARE="$JL_SHARE" JULIA="$JULIA" ROOT_CONFIG="$rootconfig" -j $(Sys.CPU_THREADS)`
+    cmd=`make -C "$depsdir" BUILD_DIR="$buildpath" CXXWRAP_PREFIX="$CXXWRAP_PREFIX" JL_SHARE="$JL_SHARE" JULIA="$JULIA" ROOT_CONFIG="$rootconfig" -j $(Sys.CPU_THREADS) VDT_DIR="$(VDT_jll.artifact_dir)"`
     extra_make_options = ROOTprefs._load_preference("extra_make_options", "")
     if !isempty(extra_make_options)
         cmd = Cmd([collect(cmd)..., extra_make_options])
