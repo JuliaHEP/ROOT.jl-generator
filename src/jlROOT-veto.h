@@ -188,10 +188,10 @@ TString & TString::Remove(TString::EStripType, char);
 
 //to prevent double registration with Long64_t version:
 Long_t ::TMath::Abs(Long_t);
-Long_t ::TMath::Min(Long_t);
-Long_t ::TMath::Min(ULong_t);
-Long_t ::TMath::Max(Long_t);
-Long_t ::TMath::Max(ULong_t);
+Long_t ::TMath::Min(Long_t, Long_t);
+ULong_t ::TMath::Min(ULong_t, ULong_t);
+Long_t ::TMath::Max(Long_t, Long_t);
+ULong_t ::TMath::Max(ULong_t, ULong_t);
 
 //overwritten error with methods with Int_t in place of Window_t
 void TVirtualX::MoveWindow(Window_t, Int_t, Int_t);

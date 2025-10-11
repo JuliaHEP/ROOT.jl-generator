@@ -52,9 +52,10 @@ die(){
 
 
 rootjl="$1"
+gendir="`pwd`"
 
 if [ -z "$rootfromenv" ]; then
-    ROOTSYS="`julia --project="$rootjl" -e 'import ROOT_jll; print(ROOT_jll.artifact_dir)'`"
+    ROOTSYS="`julia --project="$gendir" -e 'import ROOT_jll; print(ROOT_jll.artifact_dir)'`"
     [ $? != 0 -o -z "$ROOTSYS" ] && die "Failed to set ROOTSYS. Please check that ROOT_jll is in the Project.toml file of $rootjl project and that the project is instantiated."
     
     [ -f "$ROOTSYS/bin/thisroot.sh" ] || die "File $ROOTSYS/bin/thisroot.sh. Failed to set ROOT environment."
@@ -86,8 +87,6 @@ else
 fi
 
 
-gendir="`pwd`"
-
 [ "$updatemode" = y  ] || rm -r build/
 
 julia --project=. generate.jl $gen_opts || die "Failed to generate code"
@@ -102,8 +101,7 @@ cp -a "$gendir/build/ROOT-$root_version/"{jlROOT-report.txt,jlROOT-veto.h,ROOT.w
 # src/ROOTdoc.jl needed to import ROOT
 [ -f src/ROOTdoc.jl ] || touch src/ROOTdoc.jl
 
-#julia --project=. -e 'import Pkg; Pkg.build(verbose=true); Pkg.test()'
-[ "$nobuild" = y ] || julia --project=. -e 'import ROOTprefs; ROOTprefs.set_use_root_jll(false); ROOTprefs.set_ROOTSYS(nothing); import ROOT;' # import Pkg; Pkg.test()'
+[ "$nobuild" = y ] || julia --project=. -e 'import Pkg; Pkg.instantiate(); import ROOTprefs; ROOTprefs.set_use_root_jll(false); ROOTprefs.set_ROOTSYS(nothing); import ROOT;' # import Pkg; Pkg.test()'
 
 cat <<EOF
 **********************************************************************
