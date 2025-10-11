@@ -11,6 +11,7 @@ Usage: genandbuid.sh DESTDIR
    --rootfromenv: generate the code from the ROOT installation of the shell environment
                   instead of from ROOT_jll
    --verbosity N: set wrapit verbosity level
+   --notest       disable run of ROOT module tests
 EOF
 }
 
@@ -24,6 +25,7 @@ unset updatemode
 unset force
 unset nobuild
 unset rootfromenv
+unset notest
 
 while true ; do
     case "$1" in
@@ -32,6 +34,7 @@ while true ; do
         --noclean) gen_opts="$gen_opts --noclean"; shift;;
         --force) force=y; shift;;
         --nobuild) nobuild=y; shift;;
+        --notest) notest=y; shift;;
         --rootfromenv) rootfromenv=y; shift;;
         --verbosity) gen_opts="$gen_opts --verbosity $2"; shift 2;;
         --) shift ; break ;; #end of options. It remains only the args.
@@ -101,7 +104,11 @@ cp -a "$gendir/build/ROOT-$root_version/"{jlROOT-report.txt,jlROOT-veto.h,ROOT.w
 # src/ROOTdoc.jl needed to import ROOT
 [ -f src/ROOTdoc.jl ] || touch src/ROOTdoc.jl
 
-[ "$nobuild" = y ] || julia --project=. -e 'import Pkg; Pkg.instantiate(); import ROOTprefs; ROOTprefs.set_use_root_jll(false); ROOTprefs.set_ROOTSYS(nothing); import ROOT;' # import Pkg; Pkg.test()'
+cmd='import Pkg; Pkg.instantiate(); import ROOTprefs; ROOTprefs.set_use_root_jll(false); ROOTprefs.set_ROOTSYS(nothing); import ROOT'
+if [ "$notest" != y ]; then
+    cmd="$cmd; import Pkg; println(stderr, \"Run unit tests...\"); Pkg.test()"
+fi
+[ "$nobuild" = y ] || julia --project=. -e "$cmd"
 
 cat <<EOF
 **********************************************************************
