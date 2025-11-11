@@ -8,20 +8,68 @@ die(){
     exit 1
 }
 
+help() {
+    cat <<EOF
+Usage: ./makedoc [OPTIONS] -o output ROOT_src_dir wrapit_report
+
+output        path of ROOTdoc.jl file to generate.
+ROOT_src_dir  path of ROOT source the documentation must be read from.
+wrapit_report path to the jlROOT-report.txt, where the list of wrapped entity can be read.
+
+OPTIONS:
+
+--help  display this help.
+--force force deletion of jldoc.sqlite file if it already exists.
+
+EOF
+}
+
+if [ "$1" = --help ]; then
+    help
+fi
+
 unset forced
 if [ "$1" = --force ]; then
     forced=y
+    shift
 fi
 
-if [ -f "$mydir/../jldoc.sqlite" ]; then
+[ $# = 4 -o "$1" != -o ] || { help; exit 1; }
+
+output="$2"
+rootsrc="$3"
+rootjl="$4"
+
+[ -d "$rootsrc" ] || die "ROOT_src_dir argument must be a directory."
+[ -f "$rootjl" ] || die "wrapit_report argument must be a file."
+
+ontheway=()
+if [ -e doxydoc ]; then
     if [ "$forced" = y ]; then
-        rm "$mydir/../jldoc.sqlite"
+        rm -r doxdoc
     else
-        die "$mydir/../jldoc.sqlite is on the way. Please move the file or use the --force option."
+        ontheway+=(doxydoc)
     fi
 fi
-        
+    
+if [ -e "jldoc.sqlite" ]; then
+    if [ "$forced" = y ]; then
+        rm "jldoc.sqlite"
+    else
+        ontheway+=(jldoc.sqlite)
+    fi
+fi
 
-./filldoxy -o ../jldoc.sqlite ../doxydoc/xml/
-./fillwrapped -o ../jldoc.sqlite ~/dev/julia/ROOT.jl/misc/jlROOT-report.txt
-./genjldoc -o ~/dev/julia/ROOT.jl/src/ROOTdoc.jl ../jldoc.sqlite
+if [ -n "${ontheway[*]}" ]; then
+    die "File or directory on the way. ${ontheway[*]} must be moved or --force option must be used to foce their deletion."
+fi
+      
+
+echo "Generate XML doc from ROOT source code..."
+"$mydir"/makexmldoc "$rootsrc"
+echo "Import the generated documentation in the database jldoc.sqlite..."
+"$mydir"/filldoxy -o jldoc.sqlite doxydoc/xml/
+echo "Import information about wrapped types and methods into the database..."
+"$mydir"/fillwrapped -o jldoc.sqlite "$rootjl"/misc/jlROOT-report.txt
+echo "Generated the $output file..."
+"$mydir"/genjldoc -o "$output" jldoc.sqlite

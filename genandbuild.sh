@@ -104,7 +104,7 @@ cp -a "$gendir/build/ROOT-$root_version/"{jlROOT-report.txt,jlROOT-veto.h,ROOT.w
 # src/ROOTdoc.jl needed to import ROOT
 [ -f src/ROOTdoc.jl ] || touch src/ROOTdoc.jl
 
-cmd='import Pkg; Pkg.instantiate(); import ROOTprefs; ROOTprefs.set_use_root_jll(false); ROOTprefs.set_ROOTSYS(nothing); import ROOT'
+cmd='import Pkg; Pkg.resolve(); Pkg.instantiate(); import ROOTprefs; ROOTprefs.set_use_root_jll(false); ROOTprefs.set_ROOTSYS(nothing); import ROOT'
 if [ "$notest" != y ]; then
     cmd="$cmd; import Pkg; println(stderr, \"Run unit tests...\"); Pkg.test()"
 fi

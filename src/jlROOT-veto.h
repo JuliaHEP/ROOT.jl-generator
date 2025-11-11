@@ -201,3 +201,9 @@ void TVirtualX::SetCursor(Window_t, Cursor_t);
 //precompilation
 void ::frombuf(char *&, Bool_t *);
 
+//breaks the == operator defined by CxxWrap to compare CxxBaseRefs
+bool ::operator==(TObjOptLink *, const std::shared_ptr<TObjLink> &);
+bool ::operator==(const std::shared_ptr<TObjLink> &, TObjOptLink *);
+
+//reimplemented in Julia in order to dereference the returned pointer
+TObject *& TObjArray::operator[](Int_t);

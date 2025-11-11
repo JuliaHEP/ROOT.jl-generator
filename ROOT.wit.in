@@ -52,17 +52,18 @@ input               = [
    "TCollectionProxyInfo.h", "TArrayF.h", "TRefArray.h", "TRefTable.h", "TArrayC.h",
    "TArray.h", "TExMap.h", "THashTable.h", "TArrayS.h", "THashList.h", "TObjArray.h",
    "TVirtualCollectionProxy.h", "TMap.h", "TOrdCollection.h", "TArrayL64.h", "TSortedList.h",
-   "TIterator.h", "TArrayI.h", "TClonesArray.h", "ROOT/TSeq.hxx", "TList.h", "TSeqCollection.h",
-   "TObjectTable.h",
+   "TIterator.h", "TArrayI.h", "TClonesArray.h", "ROOT/TSeq.hxx", 
+   "TList.h",
+   "TSeqCollection.h", "TObjectTable.h",
    # <<< Containers package
 
-  "TBrowser.h",
-  "TTree.h", "TBranchPtr.h", "TLeaf.h", "TBranch.h",
+  "TBrowser.h", "TTree.h", "TBranchPtr.h",
+  "TLeaf.h", "TLeafB.h", "TLeafC.h", "TLeafD32.h", "TLeafD.h", "TLeafElement.h", "TLeafF16.h",
+  "TLeafF.h", "TLeafG.h", "TLeafI.h", "TLeafL.h", "TLeafObject.h", "TLeafO.h", "TLeafS.h", 
+  "TBranch.h", "TBranchObject.h", "TBranchElement.h", "TBranchSTL.h",
   "TTreeReader.h", "TTreeReaderValue.h", "TTreeReaderArray.h",
-  "TCanvas.h", "TRandom.h",
-  "TRandom.h",
-  "TDirectoryFile.h", "TFile.h",
-  "TEntryList.h", "TKey.h",   "TObjArray.h", "TVectorT.h", "TVectorDfwd.h", "TVectorFfwd.h",
+  "TCanvas.h", "TRandom.h", "TRandom.h", "TDirectoryFile.h", "TFile.h",
+  "TEntryList.h", "TKey.h", "TObjArray.h", "TVectorT.h", "TVectorDfwd.h", "TVectorFfwd.h",
   "Templates.h",  "Extra.h",
 
    #
@@ -494,8 +495,8 @@ inheritances        = [ "TROOT:" ]
 
 export_blacklist    = [ "String", "Integer", "Set", "Timer", "cd", "mkdir", "pwd", "begin", "end" ]
 
-n_classes_per_file  = 5
-#n_classes_per_file  = -1
+#n_classes_per_file  = 5
+n_classes_per_file  = -1
 
 # TGeoVolume, TGeoShape and TGeoMedium instances are deleted by the TGeoManager
 # (see https://root.cern/doc/master/classTGeoVolume.html)

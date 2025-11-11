@@ -10,7 +10,7 @@ wit = joinpath(builddir, "ROOT.wit")
 cxxsrc = [ "Templates.cxx", "Templates.h", "TBranchPtr.h", "Extra.cxx", "Extra.h" ]
 #makefile = "CMakeLists.txt.in"
 makefile = "Makefile.in"
-jlsrc = ["iROOT.jl", "ROOT.jl", "internals.jl", "CxxBuild.jl", "ROOTex.jl", "demo.jl", "def_args.jl", "move.jl" ]
+jlsrc = ["iROOT.jl", "ROOT.jl", "internals.jl", "CxxBuild.jl", "ROOTex.jl", "demo.jl", "def_args.jl", "move.jl", "ROOTdoc.jl" ]
 
 updatemode = ("--update" ∈ ARGS)
 updatemode && println("Update mode")
