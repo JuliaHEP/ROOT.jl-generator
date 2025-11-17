@@ -124,6 +124,8 @@ end
 Base.length(a::Union{TObjArray, CxxRef{<:TObjArray},
                      TRefArray, CxxRef{<:TRefArray}}) = GetEntries(a)
 
+Base.length(a::Union{TTreeReaderArray, CxxRef{<:TTreeReaderArray}}) = GetSize(a)
+
 #---TFile extensions-------------------------------------------------------------------------------
 """
    `Get(file::Union{TDirectoryFile, CxxPtr{<:TDirectoryFile}}, name)`

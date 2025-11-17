@@ -15,7 +15,7 @@ Usage: genandbuid.sh DESTDIR
 EOF
 }
 
-temp=`getopt -o h --long update,noclean,nobuild,force,verbosity:,rootfromenv \
+temp=`getopt -o h --long help,update,noclean,nobuild,notest,force,verbosity:,rootfromenv \
      -n 'genandbuild.sh' -- "$@"`
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$temp"
