@@ -69,9 +69,9 @@ fi
 
 echo "Generate XML doc from ROOT source code..."
 "$mydir"/makexmldoc "$rootsrc"
-echo "Import the generated documentation in the database jldoc.sqlite..."
-"$mydir"/filldoxy -o jldoc.sqlite doxydoc/xml/
 echo "Import information about wrapped types and methods into the database..."
 "$mydir"/fillwrapped -o jldoc.sqlite "$rootjl"/misc/jlROOT-report.txt
+echo "Import the generated documentation in the database jldoc.sqlite..."
+"$mydir"/filldoxy -o jldoc.sqlite doxydoc/xml/
 echo "Generate the $output file..."
 "$mydir"/genjldoc -o "$output" jldoc.sqlite
