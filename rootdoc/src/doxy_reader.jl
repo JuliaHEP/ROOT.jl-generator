@@ -675,9 +675,9 @@ function parse_table!(io, e, state)
     end
     ensurenewline(io)
     table = if length(header) >= 1
-        pretty_table(io.base, stack(data, dims=1), alignment=:l, backend=Val(:markdown), header=header[1], linebreaks=true, allow_markdown_in_cells=true)
+        pretty_table(io.base, stack(data, dims=1), alignment=:l, backend=:markdown, column_labels=header[1], line_breaks=true, allow_markdown_in_cells=true)
     else
-        pretty_table(io.base, stack(data, dims=1), alignment=:l, backend=Val(:mardown), linebreaks=true, allow_markdown_in_cells=true)
+        pretty_table(io.base, stack(data, dims=1), alignment=:l, backend=:markdown, line_breaks=true, allow_markdown_in_cells=true)
     end
     nothing
 end

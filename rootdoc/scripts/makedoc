@@ -10,11 +10,12 @@ die(){
 
 help() {
     cat <<EOF
-Usage: ./makedoc [OPTIONS] -o output ROOT_src_dir wrapit_report
+Usage: ./makedoc [OPTIONS] -o output ROOT_src_dir ROOT_jl_dir
 
 output        path of ROOTdoc.jl file to generate.
 ROOT_src_dir  path of ROOT source the documentation must be read from.
-wrapit_report path to the jlROOT-report.txt, where the list of wrapped entity can be read.
+ROOT_jl_dir   path of the ROOT.jl directort that must contain the Wrapit report under
+              misc/jlROOT-report.txt 
 
 OPTIONS:
 
@@ -41,12 +42,13 @@ rootsrc="$3"
 rootjl="$4"
 
 [ -d "$rootsrc" ] || die "ROOT_src_dir argument must be a directory."
-[ -f "$rootjl" ] || die "wrapit_report argument must be a file."
+[ -d "$rootjl" ] || die "ROOT_jl_dir argument must be a directory."
+[ -f "$rootjl"/misc/jlROOT-report.txt ] || die "ROOT_jl_dir needs to contain misc/jlROOT-report.txt."
 
 ontheway=()
 if [ -e doxydoc ]; then
     if [ "$forced" = y ]; then
-        rm -r doxdoc
+        rm -r doxydoc
     else
         ontheway+=(doxydoc)
     fi
@@ -71,5 +73,5 @@ echo "Import the generated documentation in the database jldoc.sqlite..."
 "$mydir"/filldoxy -o jldoc.sqlite doxydoc/xml/
 echo "Import information about wrapped types and methods into the database..."
 "$mydir"/fillwrapped -o jldoc.sqlite "$rootjl"/misc/jlROOT-report.txt
-echo "Generated the $output file..."
+echo "Generate the $output file..."
 "$mydir"/genjldoc -o "$output" jldoc.sqlite
