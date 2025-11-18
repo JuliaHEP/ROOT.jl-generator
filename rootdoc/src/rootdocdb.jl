@@ -224,14 +224,16 @@ export CxxPtr, ConstCxxPtr, CxxRef, ConstCxxRef
 # Export type aliases used in the documentation
 export ByCopy, ByConstRef1, ByRef1, ByConstPtr1, ByPtr1, ByConstRef2, ByRef2, ByConstPtr2, ByPtr2
 
-# Wrapper of @doc that turns the possible exception
+# Wrapper of @doc that catches exception
 macro trydoc(doc, entity)
     sentity = string(entity)
     quote
         try
             @doc $(esc(doc)) $entity
         catch e
-            @warn("Error when setting documentation for " * $sentity * ": " * sprint(showerror, e) * ".")
+            if haskey(ENV, "ROOTDOC_DEBUG")
+               @warn("Error when setting documentation for " * $sentity * ": " * sprint(showerror, e) * ".")
+            end
         end
     end
 end
@@ -240,7 +242,9 @@ end
 macro trydoc(expr)
     sexpr = string(expr)
     quote
-        @warn("Error when setting documentation for " * $sexpr * ".")
+        if haskey(ENV, "ROOTDOC_DEBUG")
+           @warn("Error when setting documentation for " * $sexpr * ".")
+        end
     end
 end
 

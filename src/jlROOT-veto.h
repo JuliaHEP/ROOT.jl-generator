@@ -170,6 +170,10 @@ TBuffer & ::operator>>(TBuffer &, ULong_t &);
 TBuffer & ::operator>>(TBuffer &, Char_t *);
 TBuffer & ::operator<<(TBuffer &, const Char_t *);
 
+//Duplicates with xxx(Long_t &*)
+Int_t TBuffer::ReadArray(Long64_t *&);
+Int_t TBuffer::ReadArray(ULong64_t *&);
+
 //Overwritten overwritten error with version with (U)Long64_t in place of (U)Long_t
 ULong_t ::host2net(ULong_t)
 Long_t ::host2net(Long_t)
