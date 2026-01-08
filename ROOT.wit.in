@@ -119,7 +119,14 @@ julia_names         = [ "TDirectoryFile::Get -> Get_",
                         "start -> thestart",
                         "end -> theend",
                         "TSubString::String -> GetString",
-                        "TRandom::Integer -> GetInteger" ]
+                        "TString::SubString -> GetSubString",
+                        "TRandom::Integer -> GetInteger",
+                        "TBuffer3D::Type -> GetType",
+                        "TVirtualPS::Text -> GetText",
+                        "TGeoManager::Matrix -> GetMatrix",
+                        "TGeoBuilder::Matrix -> GetMatrix",
+                        "TROOT::Timer -> GetTimer"
+]
 
 fields_and_variables = true
 

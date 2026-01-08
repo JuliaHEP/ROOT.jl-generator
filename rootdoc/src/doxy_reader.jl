@@ -283,6 +283,15 @@ end
 function doxy2jlmethod(doxymethodname; nargs, class, isstatic)
     
     staticofclass = isstatic && !isempty(class)
+
+
+    doxymethodname = replace(doxymethodname,
+                             "String" => "GetString",
+                             "SubString" => "GetSubString",
+                             "Integer" => "GetInteger",
+                             "Text" => "GetText",
+                             "Matrix" => "GetMatrix",
+                             "Timer" => "GetTimer")
     
     m = match(r"(^|.*::)operator[[:space:]]*(.*)$", doxymethodname)
 
