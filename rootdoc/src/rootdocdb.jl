@@ -393,10 +393,10 @@ end
 function fixcolons(conn)
     result = DBInterface.execute(conn.db, """
     SELECT jlname FROM type_doc
-    WHERE jlname LIKE '%$colonsubstitute%'
+    WHERE jlname LIKE '%!%'
     UNION ALL
     SELECT jlname FROM method_doc
-    WHERE jlname LIKE '%$colonsubstitute%';
+    WHERE jlname LIKE '%!%';
     """)
     jlnames = [ row[1] for row in result ]
 

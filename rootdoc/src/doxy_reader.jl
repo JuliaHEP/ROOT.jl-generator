@@ -104,6 +104,7 @@ function doxy2jltype(doxytypename; returntype = false, constmethod = false)
                      r"\bvoid\b"               => "Nothing",
                      r"\bfloat\b"              => "Float32",
                      r"\bdouble\b"             => "Float64",
+                     r"\bunsigned char\b"      => "UInt8",
                      r"\bunsigned short\b"     => "UInt16",
                      r"\bunsigned int\b"       => "UInt32",
                      r"\bunsigned long\b"      => "UInt64",
@@ -285,13 +286,13 @@ function doxy2jlmethod(doxymethodname; nargs, class, isstatic)
     staticofclass = isstatic && !isempty(class)
 
 
-    doxymethodname = replace(doxymethodname,
+    doxymethodname = replace([doxymethodname],
                              "String" => "GetString",
                              "SubString" => "GetSubString",
                              "Integer" => "GetInteger",
                              "Text" => "GetText",
                              "Matrix" => "GetMatrix",
-                             "Timer" => "GetTimer")
+                             "Timer" => "GetTimer")[]
     
     m = match(r"(^|.*::)operator[[:space:]]*(.*)$", doxymethodname)
 
@@ -1105,7 +1106,8 @@ function filldb(conn, inputfile)
             if !isempty(doc) && haskey(class_rcd, "name")
                 doc = "    ROOT." * class_rcd["name"] * "\n\n" * doc
                 doc = wrapdoc(doc)
-                jlname = replace(class_rcd["name"], "::" => "!")
+                jlname = replace(class_rcd["name"], colonsubstitute => "!")
+                cxxname = replace(class_rcd["name"], colonsubstitute => "::")
                 dbinserttype(conn, class_rcd["name"], jlname, doc)
             end
 
